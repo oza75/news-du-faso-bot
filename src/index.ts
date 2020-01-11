@@ -4,7 +4,7 @@ import JeuneAfriqueCrawler from "./Crawler/JeuneAfriqueCrawler";
 
 let crawlers: Crawler[] = [new JeuneAfriqueCrawler()];
 (async () => {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({args: ['--no-sandbox']});
     browser.on('disconnected', async () => {
        console.log('le navigateur s\'est deconnecter')
     });
