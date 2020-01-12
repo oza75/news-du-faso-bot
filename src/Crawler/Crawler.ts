@@ -1,4 +1,4 @@
-import {Browser, Page} from "puppeteer";
+import {Browser, ElementHandle, Page} from "puppeteer";
 import Logger from "../Logger";
 import Parser from "../Parsers/Parser";
 import {Article, ProviderArticles} from "../types";
@@ -22,15 +22,23 @@ abstract class Crawler {
         for (let i = 0; i < urls.length; i++) {
             let url: string = urls[i];
             let article: Article = await this.parser().parse(this.browser, url);
-            article.url = url;
-            article.source = this.name;
-            providerArticles.articles.push(article);
+            if (article) {
+                article.url = url;
+                article.source = this.name;
+                providerArticles.articles.push(article);
+            }
         }
         return providerArticles;
     }
 
     protected log(message: any) {
         Logger.log(message + ` on ${this.url}`);
+    }
+
+    protected async $(selector: string, parent: ElementHandle | Page, log: boolean = true) {
+        let result: ElementHandle | null = await parent.$(selector);
+        if (!result && log) this.log(`${selector} not found`);
+        return result;
     }
 
     public abstract async handle(page: Page): Promise<any>;

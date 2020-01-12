@@ -2,81 +2,93 @@ import puppeteer from "puppeteer"
 import Crawler from "./Crawler/Crawler";
 import JeuneAfriqueCrawler from "./Crawler/JeuneAfriqueCrawler";
 import {ProviderArticles} from "./types";
-import {randomInt} from "./Utils";
 import Article from "./Models/Article";
 import Logger from "./Logger";
 import Publisher from "./Publisher";
+import FasoNetCrawler from "./Crawler/FasoNetCrawler";
 
 require('./Db');
 const fs = require('fs');
-
+process.env.MODE = 'dev';
 let providers: ProviderArticles[] = [];
-let crawlers: Crawler[] = [new JeuneAfriqueCrawler()];
+let crawlers: Crawler[] = [new FasoNetCrawler(), new JeuneAfriqueCrawler()];
 let runAttempts: number = 0;
 let success: boolean = false;
 
+let indexFileExists: boolean = fs.existsSync(__dirname + '/index.txt');
+let index: number = indexFileExists ? parseInt(fs.readFileSync(__dirname + '/index.txt').toString()) + 1 : 0;
+index = isNaN(index) ? 0 : index;
+index = index > crawlers.length - 1 ? 0 : index;
+
+const validTime = () => {
+    let startTime = "08:00:00";
+    let endTime = "24:00:00";
+    let nowTime = new Date().toLocaleTimeString();
+    return startTime <= nowTime && endTime >= nowTime;
+};
 const run = async () => {
-    const browser = await puppeteer.launch({
-        args: ['--disable-gpu', '--no-sandbox', '--single-process',
-            '--disable-web-security', '--disable-dev-profile'],
-        headless: true
-    });
-    browser.on('disconnected', async () => {
-        Logger.log('le navigateur s\'est deconnecter')
-    });
-    let chromeTmpDataDir = null;
-
-// find chrome user data dir (puppeteer_dev_profile-XXXXX) to delete it after it had been used
-    // @ts-ignore
-    let chromeSpawnArgs = browser.process().spawnargs;
-    for (let i = 0; i < chromeSpawnArgs.length; i++) {
-        if (chromeSpawnArgs[i].indexOf("--user-data-dir=") === 0) {
-            chromeTmpDataDir = chromeSpawnArgs[i].replace("--user-data-dir=", "");
-        }
-    }
-
-    for (let i = 0; i < crawlers.length; i++) {
-        let crawler: Crawler = crawlers[i];
-        providers.push(await crawler.crawl(browser));
-    }
-    await browser.close();
-
-    if (chromeTmpDataDir !== null) {
-        try {
-            fs.unlinkSync(chromeTmpDataDir);
-        } catch (e) {
-            Logger.log(e);
-        }
+    if (!validTime()) {
+        process.exit(0);
     }
 
     let result: boolean | undefined = false;
     let attempts: number = 0;
+
     do {
-        attempts++;
-        let attemps = 0;
-        let article: any = null;
-        let provider: any = null;
-        do {
-            attemps++;
-            provider = providers[randomInt(providers.length)];
-            for (let i = 0; i < provider.articles.length; i++) {
-                let art = provider.articles[i];
-                let res = await Article.findOne({provider_url: art.url});
-                if (!res) {
-                    article = art;
-                    break;
-                }
+        const browser = await puppeteer.launch({
+            args: ['--disable-gpu', '--no-sandbox', '--single-process',
+                '--disable-web-security', '--disable-dev-profile'],
+            headless: true
+        });
+        browser.on('disconnected', async () => {
+            Logger.log('le navigateur s\'est deconnecter')
+        });
+        let chromeTmpDataDir = null;
+
+// find chrome user data dir (puppeteer_dev_profile-XXXXX) to delete it after it had been used
+        // @ts-ignore
+        let chromeSpawnArgs = browser.process().spawnargs;
+        for (let i = 0; i < chromeSpawnArgs.length; i++) {
+            if (chromeSpawnArgs[i].indexOf("--user-data-dir=") === 0) {
+                chromeTmpDataDir = chromeSpawnArgs[i].replace("--user-data-dir=", "");
             }
-        } while (!article && attemps <= 5);
+        }
+
+        let crawler: Crawler = crawlers[index];
+        let provider: ProviderArticles = await crawler.crawl(browser);
+
+        await browser.close();
+
+        if (chromeTmpDataDir !== null) {
+            try {
+                fs.unlinkSync(chromeTmpDataDir);
+            } catch (e) {
+                Logger.log(e);
+            }
+        }
+
+        let article: any = null;
+        for (let i = 0; i < provider.articles.length; i++) {
+            let art = provider.articles[i];
+            let res = await Article.findOne({provider_url: art.url});
+            if (!res) {
+                article = art;
+                break;
+            }
+        }
 
         if (!article) {
             Logger.log(`Aucun article n'est disponible`);
+            index = index + 1 < crawlers.length ? index + 1 : 0;
         } else {
             result = await new Publisher(article, provider.provider).publish();
         }
 
+        attempts++;
+
     } while (!result && attempts <= 5);
 
+    fs.writeFileSync(__dirname + '/index.txt', index);
     process.exit(0);
 };
 

@@ -2,6 +2,10 @@ const fs = require('fs');
 
 class Logger {
     static log(...args: any[]) {
+        if (process.env.MODE == "dev") {
+            console.log(...args);
+            return;
+        }
         let date = new Date().toDateString().toLowerCase()
             .replace(/\s+/g, '-')           // Replace spaces with -
             .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
