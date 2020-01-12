@@ -19,9 +19,11 @@ index = isNaN(index) ? 0 : index;
 index = index > crawlers.length - 1 ? 0 : index;
 
 const validTime = () => {
-    let startTime = "08:00:00";
-    let endTime = "24:00:00";
-    let nowTime = new Date().toLocaleTimeString();
+    let startTime = new Date();
+    startTime.setHours(8, 0, 0);
+    let endTime = new Date();
+    endTime.setHours(24, 0, 0);
+    let nowTime = new Date();
     Logger.log(startTime <= nowTime && endTime >= nowTime, startTime <= nowTime, endTime >= nowTime, nowTime);
     return startTime <= nowTime && endTime >= nowTime;
 };
