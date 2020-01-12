@@ -6,6 +6,7 @@ import JeuneAfriqueParser from "../Parsers/JeuneAfriqueParser";
 
 class JeuneAfriqueCrawler extends Crawler {
     protected url: string = 'https://www.jeuneafrique.com/pays/burkina-faso/';
+    protected name: string = 'Jeune Afrique';
 
     async handle(page: Page): Promise<any> {
         let urls: string[] = [];

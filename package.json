@@ -13,12 +13,13 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^13.1.6",
-    "concurrently": "^5.0.2",
-    "nodemon": "^2.0.2",
     "typescript": "^3.7.4"
   },
   "dependencies": {
+    "@types/mongoose": "^5.5.41",
     "@types/puppeteer": "^2.0.0",
+    "axios": "^0.19.1",
+    "mongoose": "^5.8.7",
     "puppeteer": "^2.0.0"
   }
 }

@@ -1,9 +1,11 @@
 import {Browser, Page} from "puppeteer";
 import Logger from "../Logger";
 import Parser from "../Parsers/Parser";
+import {Article, ProviderArticles} from "../types";
 
 abstract class Crawler {
     protected url!: string;
+    protected name!: string;
     protected browser!: Browser;
 
     public async crawl(browser: Browser) {
@@ -11,16 +13,20 @@ abstract class Crawler {
         let page: Page = await browser.newPage();
         await page.goto(this.url);
         let urls: string[] = await this.handle(page);
-        console.log(urls);
         await page.close();
-        await this.parse(urls);
+        return await this.parse(urls);
     }
 
     private async parse(urls: string[]) {
+        let providerArticles: ProviderArticles = {provider: this.name, articles: []};
         for (let i = 0; i < urls.length; i++) {
             let url: string = urls[i];
-            await this.parser().parse(this.browser, url);
+            let article: Article = await this.parser().parse(this.browser, url);
+            article.url = url;
+            article.source = this.name;
+            providerArticles.articles.push(article);
         }
+        return providerArticles;
     }
 
     protected log(message: any) {
