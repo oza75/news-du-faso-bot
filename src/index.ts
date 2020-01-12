@@ -80,10 +80,11 @@ const run = async () => {
 
         if (!article) {
             Logger.log(`Aucun article n'est disponible`);
-            index = index + 1 < crawlers.length ? index + 1 : 0;
         } else {
             result = await new Publisher(article, provider.provider).publish();
         }
+
+        index = index + 1 < crawlers.length ? index + 1 : 0;
 
         attempts++;
 
