@@ -22,6 +22,7 @@ const validTime = () => {
     let startTime = "08:00:00";
     let endTime = "24:00:00";
     let nowTime = new Date().toLocaleTimeString();
+    Logger.log(startTime <= nowTime && endTime >= nowTime, startTime <= nowTime, endTime >= nowTime, nowTime);
     return startTime <= nowTime && endTime >= nowTime;
 };
 const run = async () => {
