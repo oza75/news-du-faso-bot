@@ -30,7 +30,7 @@ class Publisher {
 
     public async summarize(text: string) {
         fs.writeFileSync(__dirname + '/article-to-summarize.txt', text);
-        let result = execSync(`ots ${__dirname + '/article-to-summarize.txt'} --ratio=30`).toString();
+        let result = execSync(`ots ${__dirname + '/article-to-summarize.txt'} --ratio=20`).toString();
         try {
             fs.unlinkSync(__dirname + '/article-to-summarize.txt');
         } catch (e) {
