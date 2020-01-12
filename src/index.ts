@@ -9,8 +9,6 @@ import FasoNetCrawler from "./Crawler/FasoNetCrawler";
 
 require('./Db');
 const fs = require('fs');
-process.env.MODE = 'dev';
-let providers: ProviderArticles[] = [];
 let crawlers: Crawler[] = [new FasoNetCrawler(), new JeuneAfriqueCrawler()];
 let runAttempts: number = 0;
 let success: boolean = false;
