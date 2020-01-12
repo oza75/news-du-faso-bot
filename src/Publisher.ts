@@ -1,5 +1,6 @@
 import {Article, FbArticle} from "./types";
 import FB from "./FB";
+import Logger from "./Logger";
 
 const {execSync} = require('child_process');
 const fs = require('fs');
@@ -29,7 +30,13 @@ class Publisher {
 
     public async summarize(text: string) {
         fs.writeFileSync(__dirname + '/article-to-summarize.txt', text);
-        return execSync(`ots ${__dirname + '/article-to-summarize.txt'} --ratio=30`).toString();
+        let result = execSync(`ots ${__dirname + '/article-to-summarize.txt'} --ratio=30`).toString();
+        try {
+            fs.unlinkSync(__dirname + '/article-to-summarize.txt');
+        } catch (e) {
+            Logger.log(e);
+        }
+        return result;
     }
 }
 
