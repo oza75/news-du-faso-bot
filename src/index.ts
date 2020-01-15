@@ -24,11 +24,11 @@ const validTime = () => {
     let endTime = new Date();
     endTime.setHours(24, 0, 0);
     let nowTime = new Date();
-    Logger.log(startTime <= nowTime && endTime >= nowTime, startTime <= nowTime, endTime >= nowTime, nowTime);
     return startTime <= nowTime && endTime >= nowTime;
 };
 const run = async () => {
     if (!validTime()) {
+        Logger.log('Not a moment to publish');
         process.exit(0);
     }
 
