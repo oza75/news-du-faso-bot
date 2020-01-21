@@ -6,15 +6,16 @@ import Article from "./Models/Article";
 import Logger from "./Logger";
 import Publisher from "./Publisher";
 import FasoNetCrawler from "./Crawler/FasoNetCrawler";
+import Burkina24Crawler from "./Crawler/Burkina24Crawler";
 
 require('./Db');
 const fs = require('fs');
-let crawlers: Crawler[] = [new FasoNetCrawler(), new JeuneAfriqueCrawler()];
+let crawlers: Crawler[] = [new FasoNetCrawler(), new JeuneAfriqueCrawler(), new Burkina24Crawler()];
 let runAttempts: number = 0;
 let success: boolean = false;
 
 let indexFileExists: boolean = fs.existsSync(__dirname + '/index.txt');
-let index: number = indexFileExists ? parseInt(fs.readFileSync(__dirname + '/index.txt').toString()) + 1 : 0;
+let index: number = indexFileExists ? parseInt(fs.readFileSync(__dirname + '/index.txt').toString()) : 0;
 index = isNaN(index) ? 0 : index;
 index = index > crawlers.length - 1 ? 0 : index;
 
@@ -39,7 +40,7 @@ const run = async () => {
         const browser = await puppeteer.launch({
             args: ['--disable-gpu', '--no-sandbox', '--single-process',
                 '--disable-web-security', '--disable-dev-profile'],
-            headless: true
+            headless: false
         });
         browser.on('disconnected', async () => {
             Logger.log('le navigateur s\'est deconnecter')
