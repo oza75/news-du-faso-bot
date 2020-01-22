@@ -5,6 +5,8 @@ import Article from "./Models/Article";
 const mongoose = require('mongoose');
 const fs = require('fs');
 import Logger from "./Logger";
+import {Browser} from "puppeteer";
+import ShareToGroup from "./ShareToGroup";
 
 require('./Db');
 
@@ -22,9 +24,9 @@ class FB {
         }
     }
 
-    async post(article: FbArticle) {
+    async post(article: FbArticle): Promise<boolean> {
         await this.fetchPage();
-        if (!this.fbPage) return;
+        if (!this.fbPage) return false;
         const art_res = await Article.create({
             id: new mongoose.Types.ObjectId(),
             provider_name: article.provider_name,
@@ -33,21 +35,27 @@ class FB {
         });
 
         if (art_res) {
-            const res = await axios.post(`${this.url}${this.fbPage.id}/photos?access_token=${this.fbPage.access_token}`, {
-                url: article.image_url,
-                message: article.message
+            return await new Promise((resolve, reject) => {
+                return axios.post(`${this.url}${this.fbPage.id}/photos?access_token=${this.fbPage.access_token}`, {
+                    url: article.image_url,
+                    message: article.message
+                }).then(async res => {
+                    Logger.log('Article Publié : ' + article.title);
+                    await new ShareToGroup().createBrowserAndShare(`https://www.facebook.com/newsdufaso.bf/posts/${res.data.id}`).catch(err => {
+                        Logger.log(`Erreur lors du partage de l'article : https://www.facebook.com/newsdufaso.bf/posts/${res.data.id}`, err);
+                    });
+                    resolve(true);
+                }).catch(err => {
+                    Logger.log(err);
+                    resolve(false);
+                })
             });
-
-            if (res.status == 200) {
-                Logger.log('Article Publié : ' + article.title);
-                return true;
-            } else return false;
-
         } else {
             return false;
         }
 
     }
+
 }
 
 export default FB;

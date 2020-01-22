@@ -28,10 +28,10 @@ const validTime = () => {
     return startTime <= nowTime && endTime >= nowTime;
 };
 const run = async () => {
-    if (!validTime()) {
-        Logger.log('Not a moment to publish');
-        process.exit(0);
-    }
+    // if (!validTime()) {
+    //     Logger.log('Not a moment to publish');
+    //     process.exit(0);
+    // }
 
     let result: boolean | undefined = false;
     let attempts: number = 0;
