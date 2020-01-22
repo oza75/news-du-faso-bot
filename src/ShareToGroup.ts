@@ -62,7 +62,7 @@ class ShareToGroup {
         let browser: Browser = await puppeteer.launch({
             args: ['--disable-gpu', '--no-sandbox', '--single-process',
                 '--disable-web-security', '--disable-dev-profile'],
-            headless: true
+            headless: false
         });
         this.browser = browser;
         await this.share(url);
