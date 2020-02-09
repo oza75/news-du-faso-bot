@@ -1,4 +1,4 @@
-import {Browser, ElementHandle, Page} from "puppeteer";
+import { Browser, ElementHandle, Page } from "puppeteer";
 import Logger from "./Logger";
 
 const fs = require('fs');
@@ -9,17 +9,17 @@ class ShareToGroup {
     private username !: string;
     private password !: string;
 
-    constructor(browser?: Browser) {
+    constructor (browser?: Browser) {
         if (browser) this.browser = browser;
-        let json = fs.readFileSync(__dirname + "/credentials.json", {encoding: 'utf-8'});
+        let json = fs.readFileSync(__dirname + "/credentials.json", { encoding: 'utf-8' });
         let credentials: { username: string, password: string } = JSON.parse(json);
         this.username = credentials.username;
         this.password = credentials.password;
     }
 
-    async share(url: string) {
+    async share (url: string) {
         let page: Page = await this.browser.newPage();
-        page.setDefaultTimeout(1000*60);
+        page.setDefaultTimeout(1000 * 60);
         await page.goto('https://www.facebook.com/');
         await page.focus('#login_form #email');
         await page.keyboard.type(this.username);
@@ -27,16 +27,19 @@ class ShareToGroup {
         await page.keyboard.type(this.password);
         await page.click("#login_form #loginbutton input");
         await page.waitForNavigation();
+        console.log('Logged successfully !!');
         await page.goto("https://www.facebook.com/groups/1038474066182398/");
-        await page.waitForSelector("#pagelet_group_composer form textarea", {timeout: 1000 * 60});
+        await page.waitForSelector("#pagelet_group_composer form textarea", { timeout: 1000 * 60 });
         await page.focus("#pagelet_group_composer form textarea");
         await page.evaluate(url => {
             navigator.clipboard.writeText(url);
         }, url);
+        console.log('Url copied !!');
         await page.waitFor(1000);
         await page.keyboard.down('Control');
         await page.keyboard.press('V');
         await page.keyboard.up('Control');
+        console.log('Url pasted!!');
         await page.waitFor(1000 * 8);
         let status = 0;
         await page.exposeFunction('setPostedStatus', function (s, d = null) {
@@ -67,18 +70,18 @@ class ShareToGroup {
             Logger.log(`Erreur lors du partage de la publication : ${url}`);
         }
     }
-
-    async createBrowserAndShare(url: string) {
-        let browser: Browser = await puppeteer.launch({
-            args: ['--disable-gpu', '--no-sandbox', '--single-process',
-                '--disable-web-security', '--disable-dev-profile'],
-            headless: true
-        });
-        this.browser = browser;
-        await this.share(url);
-        await this.browser.close();
-    }
 }
 
+const share = async function (url: string) {
+    let browser: Browser = await puppeteer.launch({
+        args: ['--disable-gpu', '--no-sandbox', '--single-process',
+            '--disable-web-security', '--disable-dev-profile'],
+        headless: true
+    });
+    await new ShareToGroup(browser).share(url);
+    await browser.close();
+};
+
+export { share };
 export default ShareToGroup;
 
