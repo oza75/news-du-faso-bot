@@ -19,6 +19,7 @@ class ShareToGroup {
 
     async share(url: string) {
         let page: Page = await this.browser.newPage();
+        page.setDefaultTimeout(1000*60);
         await page.goto('https://www.facebook.com/');
         await page.focus('#login_form #email');
         await page.keyboard.type(this.username);
@@ -38,18 +39,27 @@ class ShareToGroup {
         await page.keyboard.up('Control');
         await page.waitFor(1000 * 8);
         let status = 0;
-        await page.exposeFunction('setPostedStatus', function (s) {
+        await page.exposeFunction('setPostedStatus', function (s, d = null) {
             status = s;
+            if (d) {
+                Logger.log("Erreur lors du partage: " + d);
+            }
         });
+
         await page.evaluate(() => {
             let btns = document.querySelectorAll("#pagelet_group_composer button[type='submit']");
             if (btns.length >= 2) {
-                (btns[1] as HTMLElement).click();
+                try {
+                    (btns[1] as HTMLElement).click();
+                } catch (e) {
+                    // @ts-ignore
+                    window.setPostedStatus(0, e.message);
+                }
                 // @ts-ignore
                 window.setPostedStatus(1);
             }
         });
-        await page.waitFor(1000 * 10);
+        await page.waitFor(1000 * 30);
         await page.close();
         if (status == 1) {
             Logger.log(`Publication : ${url} partagée`);
@@ -62,7 +72,7 @@ class ShareToGroup {
         let browser: Browser = await puppeteer.launch({
             args: ['--disable-gpu', '--no-sandbox', '--single-process',
                 '--disable-web-security', '--disable-dev-profile'],
-            headless: false
+            headless: true
         });
         this.browser = browser;
         await this.share(url);

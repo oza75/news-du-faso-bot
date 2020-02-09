@@ -41,9 +41,9 @@ class FB {
                     message: article.message
                 }).then(async res => {
                     Logger.log('Article Publié : ' + article.title);
-                    await new ShareToGroup().createBrowserAndShare(`https://www.facebook.com/newsdufaso.bf/posts/${res.data.id}`).catch(err => {
-                        Logger.log(`Erreur lors du partage de l'article : https://www.facebook.com/newsdufaso.bf/posts/${res.data.id}`, err);
-                    });
+                    // await new ShareToGroup().createBrowserAndShare(`https://www.facebook.com/newsdufaso.bf/posts/${res.data.id}`).catch(err => {
+                    //     Logger.log(`Erreur lors du partage de l'article : https://www.facebook.com/newsdufaso.bf/posts/${res.data.id}`, err);
+                    // });
                     resolve(true);
                 }).catch(err => {
                     Logger.log(err);
