@@ -1,8 +1,8 @@
 import puppeteer from "puppeteer"
 import Crawler from "./Crawler/Crawler";
 import JeuneAfriqueCrawler from "./Crawler/JeuneAfriqueCrawler";
-import {ProviderArticles} from "./types";
-import Article from "./Models/Article";
+import { Article, ProviderArticles } from "./types";
+import DbArticle from "./Models/Article";
 import Logger from "./Logger";
 import Publisher from "./Publisher";
 import FasoNetCrawler from "./Crawler/FasoNetCrawler";
@@ -40,7 +40,7 @@ const run = async () => {
         const browser = await puppeteer.launch({
             args: ['--disable-gpu', '--no-sandbox', '--single-process',
                 '--disable-web-security', '--disable-dev-profile'],
-            headless: true
+            headless: false
         });
         browser.on('disconnected', async () => {
             Logger.log('le navigateur s\'est deconnecter')
@@ -57,7 +57,7 @@ const run = async () => {
         }
 
         let crawler: Crawler = crawlers[index];
-        let provider: ProviderArticles = await crawler.crawl(browser);
+        let article: Article | null = await crawler.crawl(browser);
 
         await browser.close();
 
@@ -69,20 +69,10 @@ const run = async () => {
             }
         }
 
-        let article: any = null;
-        for (let i = 0; i < provider.articles.length; i++) {
-            let art = provider.articles[i];
-            let res = await Article.findOne({provider_url: art.url});
-            if (!res) {
-                article = art;
-                break;
-            }
-        }
-
         if (!article) {
             Logger.log(`Aucun article n'est disponible`);
         } else {
-            result = await new Publisher(article, provider.provider).publish();
+            result = await new Publisher(article).publish();
         }
 
         index = index + 1 < crawlers.length ? index + 1 : 0;
@@ -91,7 +81,7 @@ const run = async () => {
 
     } while (!result && attempts <= 5);
 
-    fs.writeFileSync(__dirname + '/index.txt', index, {flag: 'w+'});
+    fs.writeFileSync(__dirname + '/index.txt', index, { flag: 'w+' });
     process.exit(0);
 };
 

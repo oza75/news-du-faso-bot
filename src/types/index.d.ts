@@ -5,9 +5,10 @@ export interface Article {
     author: string | null,
     image: ArticleImage,
     description: string | null,
-    contents: ArticleContentElement[],
+    // contents: ArticleContentElement[],
     plainText: string,
-    source: string
+    source: string,
+    provider: string
 }
 
 export interface ArticleContentElement {

@@ -13,35 +13,37 @@ class FasoNetParser extends Parser {
             this.log('Container not found ! ');
             return null;
         }
-        await this.title(container, article);
-        await this.time(container, article);
-        await this.image(contentContainer, article);
-        await this.description(contentContainer, article);
-        await this.articleContent(contentContainer, article);
-        article.contents.pop();
-        article.plainText = article.contents.reduce((previousValue: any, currentValue: ArticleContentElement) => {
-            previousValue += "\n";
-            previousValue += currentValue.content;
-            return previousValue;
-        }, article.description);
+        let promises: Promise<any>[] = [];
 
+        promises.push(this.title(container, article));
+        promises.push(this.time(container, article));
+        promises.push(this.image(contentContainer, article));
+        promises.push(this.description(contentContainer, article));
+        // await this.articleContent(contentContainer, article);
+        // article.contents.pop();
+        // article.plainText = article.contents.reduce((previousValue: any, currentValue: ArticleContentElement) => {
+        //     previousValue += "\n";
+        //     previousValue += currentValue.content;
+        //     return previousValue;
+        // }, article.description);
+        await Promise.all(promises);
         return article;
     }
 
-    private async articleContent(contentContainer: ElementHandle<Element>, article: Article) {
-        let articleContent: ElementHandle | null = await this.$('.article_content', contentContainer);
-        let contentElements: ElementHandle[] = await articleContent?.$$('p,h1,h2,h3,h4,h5,h6,blockquote') || [];
-        for (let i = 0; i < contentElements.length; i++) {
-            let elementHandle: ElementHandle = contentElements[i];
-            let contentElement: ArticleContentElement = await elementHandle.evaluate(el => {
-                return {
-                    type: el.nodeName,
-                    content: el.textContent
-                };
-            });
-            article.contents.push(contentElement);
-        }
-    }
+    // private async articleContent(contentContainer: ElementHandle<Element>, article: Article) {
+    //     let articleContent: ElementHandle | null = await this.$('.article_content', contentContainer);
+    //     let contentElements: ElementHandle[] = await articleContent?.$$('p,h1,h2,h3,h4,h5,h6,blockquote') || [];
+    //     for (let i = 0; i < contentElements.length; i++) {
+    //         let elementHandle: ElementHandle = contentElements[i];
+    //         let contentElement: ArticleContentElement = await elementHandle.evaluate(el => {
+    //             return {
+    //                 type: el.nodeName,
+    //                 content: el.textContent
+    //             };
+    //         });
+    //         article.contents.push(contentElement);
+    //     }
+    // }
 
     private async description(contentContainer: ElementHandle<Element>, article: Article) {
         let descriptionHandle: ElementHandle | null = await this.$('h3', contentContainer);
