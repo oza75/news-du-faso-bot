@@ -6,7 +6,7 @@ import FasoNetParser from "../Parsers/FasoNetParser";
 class FasoNetCrawler extends Crawler {
     protected url: string = 'https://lefaso.net/spip.php';
     protected baseUrl: string = 'https://lefaso.net/';
-    protected name: string = 'Faso Net';
+    protected name: string = ' LEFASO.NET';
 
     async handle(page: Page): Promise<any> {
         let containers: ElementHandle[] = await page.$$('.container');
