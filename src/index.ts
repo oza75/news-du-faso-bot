@@ -40,7 +40,7 @@ const run = async () => {
         const browser = await puppeteer.launch({
             args: ['--disable-gpu', '--no-sandbox', '--single-process',
                 '--disable-web-security', '--disable-dev-profile'],
-            headless: true
+            headless: false
         });
         browser.on('disconnected', async () => {
             Logger.log('le navigateur s\'est deconnecter')
