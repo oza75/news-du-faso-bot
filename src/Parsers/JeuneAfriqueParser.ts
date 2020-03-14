@@ -16,40 +16,40 @@ class JeuneAfriqueParser extends Parser {
         await this.getTitleAndPublishedAt(page, article);
         await this.author(content, article);
         await this.image(content, article);
-        await this.content(content, article);
+        // await this.content(content, article);
         return article;
 
     }
 
-    private async content(content: ElementHandle<Element>, article: Article) {
-        let articleText: ElementHandle | null = await this.$('.art-text', content);
-        if (articleText) {
-            let descriptionHandle: ElementHandle | null = await this.$('p.lead', articleText);
-            if (descriptionHandle) {
-                article.description = await descriptionHandle.evaluate(el => el.textContent);
-            }
-
-            let contentElements: ElementHandle[] = await articleText.$$('p:not(.lead):not(.price-hook):not(.subscription-hook),h1,h2,h3,h4,h5,h6,blockquote');
-            for (let i = 0; i < contentElements.length; i++) {
-                let elementHandle: ElementHandle = contentElements[i];
-                let contentElement: ArticleContentElement = await elementHandle.evaluate(el => {
-                    return {
-                        type: el.nodeName,
-                        content: el.textContent
-                    };
-                });
-                if (contentElement.content != 'En savoir plus ?') {
-                    article.contents.push(contentElement);
-                }
-            }
-
-            article.plainText = article.contents.reduce((previousValue: any, currentValue: ArticleContentElement) => {
-                previousValue += "\n";
-                previousValue += currentValue.content;
-                return previousValue;
-            }, article.description);
-        }
-    }
+    // private async content(content: ElementHandle<Element>, article: Article) {
+    //     let articleText: ElementHandle | null = await this.$('.art-text', content);
+    //     if (articleText) {
+    //         let descriptionHandle: ElementHandle | null = await this.$('p.lead', articleText);
+    //         if (descriptionHandle) {
+    //             article.description = await descriptionHandle.evaluate(el => el.textContent);
+    //         }
+    //
+    //         let contentElements: ElementHandle[] = await articleText.$$('p:not(.lead):not(.price-hook):not(.subscription-hook),h1,h2,h3,h4,h5,h6,blockquote');
+    //         for (let i = 0; i < contentElements.length; i++) {
+    //             let elementHandle: ElementHandle = contentElements[i];
+    //             let contentElement: ArticleContentElement = await elementHandle.evaluate(el => {
+    //                 return {
+    //                     type: el.nodeName,
+    //                     content: el.textContent
+    //                 };
+    //             });
+    //             if (contentElement.content != 'En savoir plus ?') {
+    //                 article.contents.push(contentElement);
+    //             }
+    //         }
+    //
+    //         article.plainText = article.contents.reduce((previousValue: any, currentValue: ArticleContentElement) => {
+    //             previousValue += "\n";
+    //             previousValue += currentValue.content;
+    //             return previousValue;
+    //         }, article.description);
+    //     }
+    // }
 
     private async image(content: ElementHandle<Element>, article: Article) {
         let imageLeadHandle: ElementHandle | null = await this.$('figure.art-thumbnail-lead', content);
