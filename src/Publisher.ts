@@ -7,11 +7,9 @@ const fs = require('fs');
 
 class Publisher {
     private article!: Article;
-    private provider_name!: string;
 
-    constructor (article: Article, provider_name: string) {
+    constructor (article: Article) {
         this.article = article;
-        this.provider_name = provider_name;
     }
 
     public async publish () {
@@ -22,7 +20,7 @@ class Publisher {
             image_url: this.article.image.src || null,
             published_at: this.article.published_at || +new Date().toString(),
             provider_url: this.article.url,
-            provider_name: this.provider_name,
+            provider_name: this.article.provider,
             message: this.article.title + '\n\n' + summary + '\n\nSource: ' + this.article.source + '\nEn Savoir Plus : ' + this.article.url
         };
 

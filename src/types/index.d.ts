@@ -7,7 +7,8 @@ export interface Article {
     description: string | null,
     // contents: ArticleContentElement[],
     plainText: string,
-    source: string
+    source: string,
+    provider: string
 }
 
 export interface ArticleContentElement {

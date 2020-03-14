@@ -13,10 +13,12 @@ class FasoNetParser extends Parser {
             this.log('Container not found ! ');
             return null;
         }
-        await this.title(container, article);
-        await this.time(container, article);
-        await this.image(contentContainer, article);
-        await this.description(contentContainer, article);
+        let promises: Promise<any>[] = [];
+
+        promises.push(this.title(container, article));
+        promises.push(this.time(container, article));
+        promises.push(this.image(contentContainer, article));
+        promises.push(this.description(contentContainer, article));
         // await this.articleContent(contentContainer, article);
         // article.contents.pop();
         // article.plainText = article.contents.reduce((previousValue: any, currentValue: ArticleContentElement) => {
@@ -24,7 +26,7 @@ class FasoNetParser extends Parser {
         //     previousValue += currentValue.content;
         //     return previousValue;
         // }, article.description);
-
+        await Promise.all(promises);
         return article;
     }
 

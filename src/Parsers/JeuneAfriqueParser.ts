@@ -1,24 +1,36 @@
 import Parser from "./Parser";
-import {ElementHandle, Page} from "puppeteer";
-import {Article, ArticleContentElement, ArticleImage} from "../types";
+import { ElementHandle, Page } from "puppeteer";
+import { Article, ArticleContentElement, ArticleImage } from "../types";
 
 class JeuneAfriqueParser extends Parser {
 
-    async handle(page: Page): Promise<any> {
+    async handle (page: Page): Promise<any> {
         // @ts-ignore
-        let article: Article = {contents: []};
+        let article: Article = { contents: [] };
         let content: ElementHandle | null = await page.$('#content article.art-content');
         if (!content) {
             this.log('[error] content (#content article.art-content) not found');
             return;
         }
-
-        await this.getTitleAndPublishedAt(page, article);
-        await this.author(content, article);
-        await this.image(content, article);
+        let promises: Promise<any>[] = [];
+        promises.push(this.getTitleAndPublishedAt(page, article));
+        promises.push(this.author(content, article));
+        promises.push(this.image(content, article));
+        promises.push(this.description(content, article));
+        await Promise.all(promises);
         // await this.content(content, article);
         return article;
 
+    }
+
+    private async description (content: ElementHandle<Element>, article: Article) {
+        let articleText: ElementHandle | null = await this.$('.art-text', content);
+        if (articleText) {
+            let descriptionHandle: ElementHandle | null = await this.$('p.lead', articleText);
+            if (descriptionHandle) {
+                article.description = await descriptionHandle.evaluate(el => el.textContent);
+            }
+        }
     }
 
     // private async content(content: ElementHandle<Element>, article: Article) {
@@ -51,7 +63,7 @@ class JeuneAfriqueParser extends Parser {
     //     }
     // }
 
-    private async image(content: ElementHandle<Element>, article: Article) {
+    private async image (content: ElementHandle<Element>, article: Article) {
         let imageLeadHandle: ElementHandle | null = await this.$('figure.art-thumbnail-lead', content);
         if (imageLeadHandle) {
             // @ts-ignore
@@ -71,14 +83,14 @@ class JeuneAfriqueParser extends Parser {
         }
     }
 
-    private async author(content: ElementHandle<Element>, article: Article) {
+    private async author (content: ElementHandle<Element>, article: Article) {
         let authorHandle: ElementHandle | null = await this.$('.author-desc a', content, false);
         if (authorHandle) {
             article.author = await authorHandle.evaluate(element => element.textContent);
         }
     }
 
-    private async getTitleAndPublishedAt(page: Page, article: Article) {
+    private async getTitleAndPublishedAt (page: Page, article: Article) {
         let header: ElementHandle | null = await this.$('#main .art-header', page);
         if (header) {
             let h1: ElementHandle | null = await this.$('h1', header);
