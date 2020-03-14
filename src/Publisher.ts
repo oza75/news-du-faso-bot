@@ -23,7 +23,7 @@ class Publisher {
             published_at: this.article.published_at || +new Date().toString(),
             provider_url: this.article.url,
             provider_name: this.provider_name,
-            message: this.article.title + '\n\n' + summary + '\n\nNotice : ce résumé a été générer automatiquement par un bot.\nSource: ' + this.article.source + '\nEn Savoir Plus : ' + this.article.url
+            message: this.article.title + '\n\n' + summary + '\n\nSource: ' + this.article.source + '\nEn Savoir Plus : ' + this.article.url
         };
 
         return await new FB().post(article);
