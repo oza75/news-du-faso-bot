@@ -18,18 +18,18 @@ class Burkina24Parser extends Parser {
         promises.push(this.publishedAt(container, article));
         promises.push(this.description(container, article));
         promises.push(this.author(container, article));
-        promises.push(this.contents(container, article));
+        // promises.push(this.contents(container, article));
 
         await Promise.all(promises);
-        article.contents.shift();
-        article.contents.pop();
-        article.contents.pop();
-        article.contents.pop();
-        article.plainText = article.contents.reduce((previousValue: any, currentValue: ArticleContentElement) => {
-            previousValue += "\n";
-            previousValue += currentValue.content;
-            return previousValue;
-        }, article.description);
+        // article.contents.shift();
+        // article.contents.pop();
+        // article.contents.pop();
+        // article.contents.pop();
+        // article.plainText = article.contents.reduce((previousValue: any, currentValue: ArticleContentElement) => {
+        //     previousValue += "\n";
+        //     previousValue += currentValue.content;
+        //     return previousValue;
+        // }, article.description);
         return article;
     }
 
@@ -66,21 +66,21 @@ class Burkina24Parser extends Parser {
         article.author = await authorHandle.evaluate(el => el.textContent);
     }
 
-    private async contents(container: ElementHandle<Element>, article: Article) {
-        let articleContent: ElementHandle | null = await this.$('.page-content', container);
-        if (!articleContent) return null;
-        let contentElements: ElementHandle[] = await articleContent.$$('p,h1,h2,h3,h4,h5,h6,blockquote') || [];
-        for (let i = 0; i < contentElements.length; i++) {
-            let elementHandle: ElementHandle = contentElements[i];
-            let contentElement: ArticleContentElement = await elementHandle.evaluate(el => {
-                return {
-                    type: el.nodeName,
-                    content: el.textContent
-                };
-            });
-            article.contents.push(contentElement);
-        }
-    }
+    // private async contents(container: ElementHandle<Element>, article: Article) {
+    //     let articleContent: ElementHandle | null = await this.$('.page-content', container);
+    //     if (!articleContent) return null;
+    //     let contentElements: ElementHandle[] = await articleContent.$$('p,h1,h2,h3,h4,h5,h6,blockquote') || [];
+    //     for (let i = 0; i < contentElements.length; i++) {
+    //         let elementHandle: ElementHandle = contentElements[i];
+    //         let contentElement: ArticleContentElement = await elementHandle.evaluate(el => {
+    //             return {
+    //                 type: el.nodeName,
+    //                 content: el.textContent
+    //             };
+    //         });
+    //         article.contents.push(contentElement);
+    //     }
+    // }
 }
 
 export default Burkina24Parser;
