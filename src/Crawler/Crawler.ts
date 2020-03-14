@@ -9,10 +9,18 @@ abstract class Crawler {
     protected name!: string;
     protected browser!: Browser;
 
-    public async crawl (browser: Browser) {
+    public beforeCrawl (browser: Browser) {
         this.browser = browser;
-        let page: Page = await browser.newPage();
+    }
+
+    public async setUrlToPage (page: Page) {
         await page.goto(this.url);
+    }
+
+    public async crawl (browser: Browser) {
+        this.beforeCrawl(browser);
+        let page: Page = await browser.newPage();
+        await this.setUrlToPage(page);
         let urls: string[] = await this.handle(page);
         await page.close();
         let url: string | null = await this.getUrlToParse(urls);

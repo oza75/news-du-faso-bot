@@ -7,6 +7,7 @@ import Logger from "./Logger";
 import Publisher from "./Publisher";
 import FasoNetCrawler from "./Crawler/FasoNetCrawler";
 import Burkina24Crawler from "./Crawler/Burkina24Crawler";
+require('dotenv').config();
 
 require('./Db');
 const fs = require('fs');
@@ -45,29 +46,11 @@ const run = async () => {
         browser.on('disconnected', async () => {
             Logger.log('le navigateur s\'est deconnecter')
         });
-        let chromeTmpDataDir = null;
-
-// find chrome user data dir (puppeteer_dev_profile-XXXXX) to delete it after it had been used
-        // @ts-ignore
-        let chromeSpawnArgs = browser.process().spawnargs;
-        for (let i = 0; i < chromeSpawnArgs.length; i++) {
-            if (chromeSpawnArgs[i].indexOf("--user-data-dir=") === 0) {
-                chromeTmpDataDir = chromeSpawnArgs[i].replace("--user-data-dir=", "");
-            }
-        }
 
         let crawler: Crawler = crawlers[index];
         let article: Article | null = await crawler.crawl(browser);
 
         await browser.close();
-
-        if (chromeTmpDataDir !== null) {
-            try {
-                fs.unlinkSync(chromeTmpDataDir);
-            } catch (e) {
-                Logger.log(e);
-            }
-        }
 
         if (!article) {
             Logger.log(`Aucun article n'est disponible`);

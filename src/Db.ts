@@ -1,2 +1,2 @@
 var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/news_du_faso_bot', {useUnifiedTopology: true, useNewUrlParser: true});
+mongoose.connect(`mongodb://localhost/${process.env.DB_NAME}`, {useUnifiedTopology: true, useNewUrlParser: true});
