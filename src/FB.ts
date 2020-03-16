@@ -12,7 +12,7 @@ require('./Db');
 
 class FB {
     private access_token!: string;
-    private user_id: string = '2605203132939674';
+    private user_id: string = '1031436286983041';
     private url: string = 'https://graph.facebook.com/';
     private fbPage!: FbPage;
 
