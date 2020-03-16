@@ -6,14 +6,14 @@ class Logger {
             console.log(...args);
             return;
         }
-        let date = new Date().toDateString().toLowerCase()
-            .replace(/\s+/g, '-')           // Replace spaces with -
-            .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-            .replace(/\-\-+/g, '-')         // Replace multiple - with single -
-            .replace(/^-+/, '')             // Trim - from start of text
-            .replace(/-+$/, '');
+        let date = new Date().toLocaleDateString().split('/').reverse().join("_");
+            // .replace(/\s+/g, '-')           // Replace spaces with -
+            // .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+            // .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+            // .replace(/^-+/, '')             // Trim - from start of text
+            // .replace(/-+$/, '');
 
-        let fileName: string = 'bot-' + date + '.log';
+        let fileName: string = 'bot_' + date + '.log';
         let data: string = args.map(it => {
             return '[' + new Date().toLocaleString() + '] ' + it + '\n';
         }).join('');

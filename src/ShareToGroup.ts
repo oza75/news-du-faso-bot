@@ -1,87 +1,134 @@
-import { Browser, ElementHandle, Page } from "puppeteer";
+import puppeteer, { Browser, ElementHandle, Page } from "puppeteer";
+import { logToFacebook } from "./Utils";
 import Logger from "./Logger";
 
 const fs = require('fs');
-const puppeteer = require('puppeteer');
 
 class ShareToGroup {
-    private browser !: Browser;
-    private username !: string;
-    private password !: string;
+    browser: Browser;
+    username: string;
+    password: string;
+    shareTo: string[] = ['News du Faso'];
 
-    constructor (browser?: Browser) {
-        if (browser) this.browser = browser;
+    constructor (browser: Browser) {
+        this.browser = browser;
         let json = fs.readFileSync(__dirname + "/credentials.json", { encoding: 'utf-8' });
         let credentials: { username: string, password: string } = JSON.parse(json);
         this.username = credentials.username;
         this.password = credentials.password;
     }
 
-    async share (url: string) {
+    async share () {
+        const context = this.browser.defaultBrowserContext();
+        await context.overridePermissions("https://www.facebook.com", ["geolocation", "notifications"]);
         let page: Page = await this.browser.newPage();
-        page.setDefaultTimeout(1000 * 60);
-        await page.goto('https://www.facebook.com/');
-        await page.focus('#login_form #email');
-        await page.keyboard.type(this.username);
-        await page.focus("#login_form #pass");
-        await page.keyboard.type(this.password);
-        await page.click("#login_form #loginbutton input");
-        await page.waitForNavigation();
-        console.log('Logged successfully !!');
-        await page.goto("https://www.facebook.com/groups/1038474066182398/");
-        await page.waitForSelector("#pagelet_group_composer form textarea", { timeout: 1000 * 60 });
-        await page.focus("#pagelet_group_composer form textarea");
-        await page.evaluate(url => {
-            navigator.clipboard.writeText(url);
-        }, url);
-        console.log('Url copied !!');
-        await page.waitFor(1000);
-        await page.keyboard.down('Control');
-        await page.keyboard.press('V');
-        await page.keyboard.up('Control');
-        console.log('Url pasted!!');
-        await page.waitFor(1000 * 8);
-        let status = 0;
-        await page.exposeFunction('setPostedStatus', function (s, d = null) {
-            status = s;
-            if (d) {
-                Logger.log("Erreur lors du partage: " + d);
-            }
-        });
-
-        await page.evaluate(() => {
-            let btns = document.querySelectorAll("#pagelet_group_composer button[type='submit']");
-            if (btns.length >= 2) {
-                try {
-                    (btns[1] as HTMLElement).click();
-                } catch (e) {
-                    // @ts-ignore
-                    window.setPostedStatus(0, e.message);
-                }
-                // @ts-ignore
-                window.setPostedStatus(1);
-            }
-        });
-        await page.waitFor(1000 * 30);
-        await page.close();
-        if (status == 1) {
-            Logger.log(`Publication : ${url} partagée`);
-        } else {
-            Logger.log(`Erreur lors du partage de la publication : ${url}`);
+        await logToFacebook(page, this.username, this.password);
+        await page.goto("https://www.facebook.com/pg/newsdufaso.bf/posts/?ref=page_internal");
+        let contentWrapper: ElementHandle | null = await page.$('.userContentWrapper');
+        if (!contentWrapper) {
+            Logger.log("Impossible de selectionner le .userContentWrapper");
+            return false;
         }
+        let shareButtonLink: ElementHandle | null = await contentWrapper.$("form a[role=button][title*='Envoyez ceci à vos ']");
+        if (!shareButtonLink) {
+            Logger.log("Impossible de selection form a[role=button][title*='Envoyez ceci à vos ']");
+            return false;
+        }
+        await shareButtonLink.hover();
+        await page.waitFor(1000 * 2);
+
+        let shareButton: ElementHandle | null = await contentWrapper.$('[endpoint="/share/share_now_menu/"]');
+
+        if (!shareButton) {
+            Logger.log("Impossible d'acceder au button de partage (selector: [endpoint=\"/share/share_now_menu/\"])");
+            return false;
+        }
+        let error = false;
+        for (let i = 0; i < this.shareTo.length; i++) {
+            error = false;
+            let group: string = this.shareTo[i];
+            await shareButton.click();
+            await page.waitFor(1000 * 3);
+            let handle: ElementHandle | null = await page.$('.uiContextualLayerPositioner:not(.hidden_elem) .uiContextualLayer ul li:nth-child(2)');
+            if (!handle) {
+                Logger.log("Impossible d'acceder à .uiContextualLayerPositioner:not(.hidden_elem) .uiContextualLayer ul li:nth-child(2)");
+                error = true;
+                continue;
+            }
+            await handle.click();
+            await page.waitFor(1000 * 3);
+            let shareDialog: ElementHandle | undefined = (await page.$$('[role="dialog"]')).pop();
+            if (!shareDialog) {
+                Logger.log("Impossible d'obtenir le dialogue de partage");
+                error = true;
+                continue;
+            }
+            let input: ElementHandle | null = await shareDialog.$('input[type="text"]');
+            if (!input) {
+                Logger.log("Impossible d'obtenir l'input ('input[type=\"text\"]')");
+                error = true;
+                continue;
+            }
+
+            await input.type(group);
+            await page.waitFor(1000 * 2);
+            await page.keyboard.press("ArrowDown");
+            await page.keyboard.press("Enter");
+            await page.waitFor(1000);
+            let submitButton: ElementHandle | null = await shareDialog.$('button[type="submit"]:nth-child(2)');
+            if (!submitButton) {
+                Logger.log("Impossible d'acceder au button de d'envoie (button[type='submit']:nth-child(2))");
+                error = true;
+                continue;
+            }
+            await submitButton.click();
+            await page.waitFor(1000 * 5);
+        }
+
+        await page.waitFor(1000 * 3);
+        await page.close();
+
+        return !error;
     }
 }
 
-const share = async function (url: string) {
+
+export const share = async () => {
     let browser: Browser = await puppeteer.launch({
         args: ['--disable-gpu', '--no-sandbox', '--single-process',
             '--disable-web-security', '--disable-dev-profile'],
         headless: true
     });
-    await new ShareToGroup(browser).share(url);
+    let instance: ShareToGroup = new ShareToGroup(browser);
+    let result = await instance.share();
     await browser.close();
+    return result;
 };
 
-export { share };
-export default ShareToGroup;
+const getTitle = () => {
+    let title: string | null | undefined = process.argv[2] || null;
+    title = title ? title.split("=").pop() : null;
+    return title;
+};
 
+let runAttempts = 0;
+let success = false;
+
+(async () => {
+    while (runAttempts <= 3 && !success) {
+        await share().then(success => {
+            if (success) {
+                Logger.log(`Publication ${getTitle()} partagée !`);
+                success = true;
+                process.exit(1);
+            } else {
+                success = false;
+                runAttempts++;
+            }
+        }).catch(err => {
+            Logger.log(err);
+            runAttempts++;
+        });
+    }
+    process.exit(1);
+})();

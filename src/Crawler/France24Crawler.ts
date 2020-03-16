@@ -1,31 +1,31 @@
 import Crawler from "./Crawler";
+import { Page } from "puppeteer";
 import Parser from "../Parsers/Parser";
-import { ElementHandle, Page } from "puppeteer";
-import FasoNetParser from "../Parsers/FasoNetParser";
-import axios, { AxiosError } from 'axios'
+import France24Parser from "../Parsers/France24Parser";
+import axios from "axios";
 
 const XmlParser = require('xml2js').Parser;
 
-class FasoNetCrawler extends Crawler {
-    protected url: string = 'https://lefaso.net/spip.php';
-    protected baseUrl: string = 'https://lefaso.net/';
-    protected name: string = 'LEFASO.NET';
+class France24Crawler extends Crawler {
+    protected url: string = 'https://www.france24.com/fr/rss';
+    protected baseUrl: string = 'https://www.france24.com/fr/';
+    protected name: string = "FRANCE 24";
     protected dontBrowse: boolean = true;
 
     async handle (page: Page): Promise<any> {
-        let res = await axios.get("https://lefaso.net/spip.php?page=backend");
+        let res = await axios.get("https://www.france24.com/fr/rss");
         if (res.status >= 200 && res.status < 300) {
             let parser = new XmlParser();
             let result = await parser.parseStringPromise(res.data);
             let channel = result.rss.channel[0];
             let items = channel.item;
+
             if (items) {
                 let urls = items.map((item: any) => item.link);
                 urls = urls.reduce((acc: string[], curr: string[]) => {
-                    if (curr[0]) acc.push(curr[0]);
+                    if (curr && curr[0]) acc.push(curr[0]);
                     return acc;
                 }, []);
-
                 return urls;
             }
         }
@@ -33,8 +33,8 @@ class FasoNetCrawler extends Crawler {
     }
 
     parser (): Parser {
-        return new FasoNetParser();
+        return new France24Parser();
     }
 }
 
-export default FasoNetCrawler;
+export default France24Crawler;

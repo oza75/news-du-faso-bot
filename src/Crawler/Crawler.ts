@@ -8,6 +8,7 @@ abstract class Crawler {
     protected url!: string;
     protected name!: string;
     protected browser!: Browser;
+    protected dontBrowse: boolean = false;
 
     public beforeCrawl (browser: Browser) {
         this.browser = browser;
@@ -20,7 +21,7 @@ abstract class Crawler {
     public async crawl (browser: Browser) {
         this.beforeCrawl(browser);
         let page: Page = await browser.newPage();
-        await this.setUrlToPage(page);
+        if (!this.dontBrowse) await this.setUrlToPage(page);
         let urls: string[] = await this.handle(page);
         await page.close();
         let url: string | null = await this.getUrlToParse(urls);

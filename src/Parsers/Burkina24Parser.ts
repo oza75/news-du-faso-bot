@@ -1,11 +1,11 @@
 import Parser from "./Parser";
-import {ElementHandle, Page} from "puppeteer";
-import {Article, ArticleContentElement, ArticleImage} from "../types";
+import { ElementHandle, Page } from "puppeteer";
+import { Article, ArticleContentElement, ArticleImage } from "../types";
 
 class Burkina24Parser extends Parser {
-    async handle(page: Page): Promise<any> {
+    async handle (page: Page): Promise<any> {
         // @ts-ignore
-        let article: Article = {contents: [], image: {}};
+        let article: Article = { contents: [], image: {} };
         let container: ElementHandle | null = await page.$('.content-holder article');
         if (!container) {
             this.log('Container  not found !');
@@ -33,13 +33,13 @@ class Burkina24Parser extends Parser {
         return article;
     }
 
-    private async title(container: ElementHandle<Element>, article: Article) {
+    private async title (container: ElementHandle<Element>, article: Article) {
         let titleHandle: ElementHandle | null = await this.$('header.entry-header h1.entry-title', container);
         if (!titleHandle) return;
         article.title = await titleHandle.evaluate(el => el.textContent) as string;
     }
 
-    private async image(container: ElementHandle<Element>, article: Article) {
+    private async image (container: ElementHandle<Element>, article: Article) {
         let imageHandle: ElementHandle | null = await this.$('header.entry-header .post-thumb img', container);
         if (!imageHandle) return null;
         // @ts-ignore
@@ -48,19 +48,28 @@ class Burkina24Parser extends Parser {
         article.image = image;
     }
 
-    private async description(container: ElementHandle<Element>, article: Article) {
-        let descriptionHandle: ElementHandle | null = await this.$('.page-content p:first-child', container);
+    private async description (container: ElementHandle<Element>, article: Article) {
+        let paragraphs: ElementHandle[] = await container.$$('.page-content p');
+        let descriptionHandle: ElementHandle | null = null;
+        for (let i = 0; i < paragraphs.length; i++) {
+            let paragraph = paragraphs[i];
+            let m: boolean = await paragraph.evaluate(p => p.matches("blockquote > p"));
+            if (!m) {
+                descriptionHandle = paragraph;
+                break;
+            }
+        }
         if (!descriptionHandle) return null;
         article.description = await descriptionHandle.evaluate(el => el.textContent);
     }
 
-    private async publishedAt(container: ElementHandle<Element>, article: Article) {
+    private async publishedAt (container: ElementHandle<Element>, article: Article) {
         let publishedAtHandle: ElementHandle | null = await this.$('header.entry-header .meta-post-area .posted-on .published', container);
         if (!publishedAtHandle) return null;
         article.published_at = await publishedAtHandle.evaluate(el => el.getAttribute('datetime')) || new Date().toISOString();
     }
 
-    private async author(container: ElementHandle<Element>, article: Article) {
+    private async author (container: ElementHandle<Element>, article: Article) {
         let authorHandle: ElementHandle | null = await this.$('header.entry-header .meta-post-area .author a', container);
         if (!authorHandle) return null;
         article.author = await authorHandle.evaluate(el => el.textContent);
