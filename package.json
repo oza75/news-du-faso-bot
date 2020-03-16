@@ -25,7 +25,9 @@
     "@types/puppeteer": "^2.0.0",
     "axios": "^0.19.1",
     "dotenv": "^8.2.0",
+    "fast-xml-parser": "^3.16.0",
     "mongoose": "^5.8.7",
-    "puppeteer": "^2.0.0"
+    "puppeteer": "^2.0.0",
+    "xml2js": "^0.4.23"
   }
 }

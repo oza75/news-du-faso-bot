@@ -7,11 +7,12 @@ import Logger from "./Logger";
 import Publisher from "./Publisher";
 import FasoNetCrawler from "./Crawler/FasoNetCrawler";
 import Burkina24Crawler from "./Crawler/Burkina24Crawler";
+import France24Crawler from "./Crawler/France24Crawler";
 require('dotenv').config();
 
 require('./Db');
 const fs = require('fs');
-let crawlers: Crawler[] = [new FasoNetCrawler(), new JeuneAfriqueCrawler(), new Burkina24Crawler()];
+let crawlers: Crawler[] = [new FasoNetCrawler(), new Burkina24Crawler(),new JeuneAfriqueCrawler(), new France24Crawler()];
 let runAttempts: number = 0;
 let success: boolean = false;
 
@@ -41,7 +42,7 @@ const run = async () => {
         const browser = await puppeteer.launch({
             args: ['--disable-gpu', '--no-sandbox', '--single-process',
                 '--disable-web-security', '--disable-dev-profile'],
-            headless: true
+            headless: false
         });
         browser.on('disconnected', async () => {
             Logger.log('le navigateur s\'est deconnecter')

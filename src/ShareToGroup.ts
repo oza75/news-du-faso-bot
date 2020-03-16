@@ -35,7 +35,7 @@ class ShareToGroup {
             return false;
         }
         await shareButtonLink.hover();
-        await page.waitFor(300);
+        await page.waitFor(1000 * 2);
 
         let shareButton: ElementHandle | null = await contentWrapper.$('[endpoint="/share/share_now_menu/"]');
 
@@ -111,11 +111,24 @@ const getTitle = () => {
     return title;
 };
 
-share().then(success => {
-    console.log(success);
-    if (success) {
-        Logger.log(`Publication ${getTitle()} partagée !`);
+let runAttempts = 0;
+let success = false;
+
+(async () => {
+    while (runAttempts <= 3 && !success) {
+        await share().then(success => {
+            if (success) {
+                Logger.log(`Publication ${getTitle()} partagée !`);
+                success = true;
+                process.exit(1);
+            } else {
+                success = false;
+                runAttempts++;
+            }
+        }).catch(err => {
+            Logger.log(err);
+            runAttempts++;
+        });
     }
-}).catch(e => {
-    Logger.log(e);
-});
+    process.exit(1);
+})();
