@@ -56,10 +56,10 @@ class FbInviteToLikePage {
             let url: string = await handle.evaluate(el => el.getAttribute('href')) as string;
             let target: string = await handle.evaluate(el => el.getAttribute('target')) as string;
             if (target === '_blank') {
-                let page1: Page = await this.browser.newPage();
-                await page1.goto(url);
-                this.handleItem(page1, true);
-                await page1.close();
+                // let page1: Page = await this.browser.newPage();
+                // await page1.goto(url);
+                // this.handleItem(page1, true);
+                // await page1.close();
                 continue;
             }
             await handle.click();
