@@ -49,6 +49,7 @@ class FbInviteToLikePage {
         for (let i = 0; i < linksHandles.length; i++) {
             let handle: ElementHandle = linksHandles[i];
             let text = await handle.evaluate(el => el.textContent) as string;
+
             if (!text.includes("invitant à aimer")) {
                 continue;
             }
@@ -56,23 +57,26 @@ class FbInviteToLikePage {
             let url: string = await handle.evaluate(el => el.getAttribute('href')) as string;
             let target: string = await handle.evaluate(el => el.getAttribute('target')) as string;
             if (target === '_blank') {
-                // let page1: Page = await this.browser.newPage();
-                // await page1.goto(url);
-                // this.handleItem(page1, true);
-                // await page1.close();
+                let page1: Page = await this.browser.newPage();
+                await page1.goto(url);
+                await page1.waitFor(1000 * 1);
+                await this.handleItem(page1);
+                page1.waitFor(1000 * 5).then(() => {
+                    page1.close();
+                });
                 continue;
+            } else if (target === '_self') {
+                await handle.click();
+                await page.waitFor(1000 * 3);
+                await this.handleItem(page);
             }
-            await handle.click();
-            await page.waitFor(1000 * 3);
-            this.handleItem(page);
         }
 
         await page.waitFor(1000 * 5);
     }
 
-    private async handleItem (page: Page, full:boolean = false) {
+    private async handleItem (page: Page, full: boolean = false) {
         let dialog: ElementHandle | undefined = (await page.$$('[role="dialog"]')).pop();
-
         if (!dialog) {
             return -1;
         }
@@ -81,9 +85,7 @@ class FbInviteToLikePage {
         if (!likeHandle) return -1;
         await likeHandle.click();
         await page.waitFor(1000 * 3);
-        if (full) {
-            await page.waitFor(1000*60*60);
-        }
+
         let likeDialog: ElementHandle | undefined = (await page.$$('[role="dialog"]')).pop();
         if (!likeDialog) return -1;
 
@@ -98,7 +100,6 @@ class FbInviteToLikePage {
         for (let j = 0; j < inviteBtns.length; j++) {
             let btnHandle: ElementHandle = inviteBtns[j];
             let href: string = await btnHandle.evaluate(el => el.getAttribute('ajaxify')) as string;
-            console.log(href);
             if (!href.includes("post_like_invite")) continue;
             await btnHandle.click();
         }
@@ -138,5 +139,6 @@ const invite = async function () {
 invite().then(e => {
     Logger.log("Invitations envoyées !!")
 }).catch(e => {
+    console.log(e);
     Logger.log(e);
 }).finally();
