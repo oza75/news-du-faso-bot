@@ -1,13 +1,13 @@
-import axios, {AxiosError} from 'axios'
-import {FbArticle, FbPage} from "./types";
+import axios, { AxiosError } from 'axios'
+import { FbArticle, FbPage } from "./types";
 import Article from "./Models/Article";
 
 const mongoose = require('mongoose');
 const fs = require('fs');
 import Logger from "./Logger";
-import {Browser} from "puppeteer";
-import ShareToGroup, { share } from "./ShareToGroup";
+import { Browser } from "puppeteer";
 
+const { exec } = require("child_process");
 require('./Db');
 
 class FB {
@@ -16,7 +16,7 @@ class FB {
     private url: string = 'https://graph.facebook.com/';
     private fbPage!: FbPage;
 
-    async fetchPage() {
+    async fetchPage () {
         this.access_token = await fs.readFileSync(__dirname + '/access_token.txt').toString('utf-8');
         const res = await axios.get(`${this.url}${this.user_id}/accounts?access_token=${this.access_token}`);
         if (res.status == 200) {
@@ -24,7 +24,7 @@ class FB {
         }
     }
 
-    async post(article: FbArticle): Promise<boolean> {
+    async post (article: FbArticle): Promise<boolean> {
         await this.fetchPage();
         if (!this.fbPage) return false;
         const art_res = await Article.create({
@@ -41,6 +41,7 @@ class FB {
                     message: article.message
                 }).then(async res => {
                     Logger.log('Article Publié : ' + article.title);
+                    exec(`node ${__dirname}/ShareToGroup.js --title="${article.title}"`);
                     resolve(true);
                 }).catch(err => {
                     Logger.log(err);

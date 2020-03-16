@@ -1,6 +1,7 @@
 import { Browser, ElementHandle, Page } from "puppeteer";
 import puppeteer from "puppeteer";
 import Logger from "./Logger";
+import { logToFacebook } from "./Utils";
 
 const fs = require('fs');
 
@@ -115,22 +116,13 @@ class FbInviteToLikePage {
 
 }
 
-export const logToFacebook = async (page: Page, username: string, password: string) => {
-    page.setDefaultTimeout(1000 * 60);
-    await page.goto('https://www.facebook.com/');
-    await page.focus('#login_form #email');
-    await page.keyboard.type(username);
-    await page.focus("#login_form #pass");
-    await page.keyboard.type(password);
-    await page.click("#login_form #loginbutton input");
-    await page.waitForNavigation();
-};
+
 
 const invite = async function () {
     let browser: Browser = await puppeteer.launch({
         args: ['--disable-gpu', '--no-sandbox', '--single-process',
             '--disable-web-security', '--disable-dev-profile'],
-        headless: false
+        headless: true
     });
     let instance: FbInviteToLikePage = new FbInviteToLikePage(browser);
     await instance.invite();
