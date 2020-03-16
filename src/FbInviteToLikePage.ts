@@ -98,6 +98,7 @@ class FbInviteToLikePage {
         for (let j = 0; j < inviteBtns.length; j++) {
             let btnHandle: ElementHandle = inviteBtns[j];
             let href: string = await btnHandle.evaluate(el => el.getAttribute('ajaxify')) as string;
+            console.log(href);
             if (!href.includes("post_like_invite")) continue;
             await btnHandle.click();
         }
