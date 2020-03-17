@@ -20,7 +20,7 @@ class FB {
         this.access_token = await fs.readFileSync(__dirname + '/access_token.txt').toString('utf-8');
         const res = await axios.get(`${this.url}${this.user_id}/accounts?access_token=${this.access_token}`);
         if (res.status == 200) {
-            this.fbPage = res.data.data[0];
+            this.fbPage = res.data.data[1];
         }
     }
 
