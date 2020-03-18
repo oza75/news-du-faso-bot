@@ -40,3 +40,16 @@ export interface FbArticle {
     provider_name: string,
     published_at: string | number
 }
+
+export interface Job {
+    title?: string,
+    image: string,
+    enterprise: string,
+    deadline?: string,
+    locality?: string,
+    studyRequirement?: string,
+    field?: string,
+    provider_url: string,
+    provider: string,
+    published_at: string,
+}
