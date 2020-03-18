@@ -8,7 +8,7 @@ import EmploiBurkinaCrawler from "./Crawler/Job/EmploiBurkinaCrawler";
 
 require('./Db');
 const fs = require('fs');
-let crawlers: JobCrawler[] = [new EmploiBurkinaCrawler()];
+let crawlers: JobCrawler[] = [new ProfessionalLinkCrawler(), new EmploiBurkinaCrawler()];
 let runAttempts: number = 0;
 let success: boolean = false;
 
