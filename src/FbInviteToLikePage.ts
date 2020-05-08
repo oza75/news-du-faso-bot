@@ -59,12 +59,15 @@ class FbInviteToLikePage {
             let target: string = await handle.evaluate(el => el.getAttribute('target')) as string;
             if (target === '_blank') {
                 let page1: Page = await this.browser.newPage();
-                await page1.goto(url, {waitUntil: "networkidle0"});
-                await page1.waitFor(1000 * 1);
-                await this.invitePeople(page1)
-                page1.waitFor(1000 * 5).then(() => {
-                    page1.close();
-                });
+                try {
+                    await page1.goto(url, {waitUntil: "networkidle0"});
+                    await page1.waitFor(1000 * 1);
+                    await this.invitePeople(page1)
+                } catch (e) {
+                    page1.waitFor(1000 * 5).then(() => {
+                        page1.close();
+                    });
+                }
                 continue;
             } else if (target === '_self') {
                 await handle.click();
