@@ -60,7 +60,6 @@ class FbInviteToLikePage {
             if (target === '_blank') {
                 let page1: Page = await this.browser.newPage();
                 await page1.goto(url, {waitUntil: "networkidle0"});
-                console.log("Page is loaded")
                 await page1.waitFor(1000 * 1);
                 await this.invitePeople(page1)
                 page1.waitFor(1000 * 5).then(() => {
