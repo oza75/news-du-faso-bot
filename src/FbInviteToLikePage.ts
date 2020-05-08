@@ -63,11 +63,10 @@ class FbInviteToLikePage {
                     await page1.goto(url, {waitUntil: "networkidle0"});
                     await page1.waitFor(1000 * 1);
                     await this.invitePeople(page1)
-                } catch (e) {
-                    page1.waitFor(1000 * 5).then(() => {
-                        page1.close();
-                    });
-                }
+                } catch (e) { Logger.log(e)}
+                page1.waitFor(1000 * 5).then(() => {
+                    page1.close();
+                });
                 continue;
             } else if (target === '_self') {
                 await handle.click();
