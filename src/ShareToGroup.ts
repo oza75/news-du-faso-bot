@@ -95,6 +95,7 @@ class ShareToGroup {
 
 export const share = async () => {
     let browser: Browser = await puppeteer.launch({
+        defaultViewport: null,
         args: ['--disable-gpu', '--no-sandbox', '--single-process',
             '--disable-web-security', '--disable-dev-profile'],
         headless: true
