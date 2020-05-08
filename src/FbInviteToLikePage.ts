@@ -38,7 +38,7 @@ class FbInviteToLikePage {
 
         await likeMentionsLinkHandle.click();
         await page.waitFor(1000 * 2);
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 30; i++) {
             await page.evaluate(() => {
                 window.scrollBy(0, window.innerHeight);
             });
@@ -126,7 +126,7 @@ const invite = async function () {
         defaultViewport: null,
         args: ['--disable-gpu', '--no-sandbox', '--single-process',
             '--disable-web-security', '--disable-dev-profile'],
-        headless: false
+        headless: true
     });
     let instance: FbInviteToLikePage = new FbInviteToLikePage(browser);
     await instance.invite();
@@ -137,4 +137,6 @@ invite().then(e => {
 }).catch(e => {
     console.log(e);
     Logger.log(e);
-}).finally();
+}).finally(() => {
+    process.exit(0);
+});
