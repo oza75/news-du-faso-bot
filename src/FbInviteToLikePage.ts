@@ -38,7 +38,7 @@ class FbInviteToLikePage {
 
         await likeMentionsLinkHandle.click();
         await page.waitFor(1000 * 2);
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 30; i++) {
             await page.evaluate(() => {
                 window.scrollBy(0, window.innerHeight);
             });
@@ -49,19 +49,21 @@ class FbInviteToLikePage {
 
         for (let i = 0; i < linksHandles.length; i++) {
             let handle: ElementHandle = linksHandles[i];
-            let text = await handle.evaluate(el => el.textContent) as string;
+            //let text = await handle.evaluate(el => el.textContent) as string;
 
-            if (!text.includes("invitant à aimer")) {
-                continue;
-            }
+            // if (!text.includes("invitant à aimer")) {
+            //     continue;
+            // }
 
             let url: string = await handle.evaluate(el => el.getAttribute('href')) as string;
             let target: string = await handle.evaluate(el => el.getAttribute('target')) as string;
             if (target === '_blank') {
                 let page1: Page = await this.browser.newPage();
-                await page1.goto(url);
-                await page1.waitFor(1000 * 1);
-                await this.handleItem(page1);
+                try {
+                    await page1.goto(url, {waitUntil: "networkidle0"});
+                    await page1.waitFor(1000 * 1);
+                    await this.invitePeople(page1)
+                } catch (e) { Logger.log(e)}
                 page1.waitFor(1000 * 5).then(() => {
                     page1.close();
                 });
@@ -86,7 +88,10 @@ class FbInviteToLikePage {
         if (!likeHandle) return -1;
         await likeHandle.click();
         await page.waitFor(1000 * 3);
+        return await this.invitePeople(page);
+    }
 
+    private async invitePeople(page: Page) {
         let likeDialog: ElementHandle | undefined = (await page.$$('[role="dialog"]')).pop();
         if (!likeDialog) return -1;
 
@@ -113,13 +118,13 @@ class FbInviteToLikePage {
         await page.keyboard.down("Escape");
         await page.waitFor(500);
     }
-
 }
 
 
 
 const invite = async function () {
     let browser: Browser = await puppeteer.launch({
+        defaultViewport: null,
         args: ['--disable-gpu', '--no-sandbox', '--single-process',
             '--disable-web-security', '--disable-dev-profile'],
         headless: true
@@ -133,4 +138,6 @@ invite().then(e => {
 }).catch(e => {
     console.log(e);
     Logger.log(e);
-}).finally();
+}).finally(() => {
+    process.exit(0);
+});
