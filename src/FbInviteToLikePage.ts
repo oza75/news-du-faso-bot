@@ -48,31 +48,36 @@ class FbInviteToLikePage {
         let linksHandles: ElementHandle[] = await content.$$('[role="main"] ul li a[href*="page_post_reaction"]');
 
         for (let i = 0; i < linksHandles.length; i++) {
-            let handle: ElementHandle = linksHandles[i];
-            //let text = await handle.evaluate(el => el.textContent) as string;
+            try {
+                let handle: ElementHandle = linksHandles[i];
+                //let text = await handle.evaluate(el => el.textContent) as string;
 
-            // if (!text.includes("invitant à aimer")) {
-            //     continue;
-            // }
+                // if (!text.includes("invitant à aimer")) {
+                //     continue;
+                // }
 
-            let url: string = await handle.evaluate(el => el.getAttribute('href')) as string;
-            let target: string = await handle.evaluate(el => el.getAttribute('target')) as string;
-            if (target === '_blank') {
-                let page1: Page = await this.browser.newPage();
-                try {
-                    await page1.goto(url, {waitUntil: "networkidle0"});
-                    await page1.waitFor(1000 * 1);
-                    await this.invitePeople(page1)
-                } catch (e) { Logger.log(e)}
-                page1.waitFor(1000 * 5).then(() => {
-                    page1.close();
-                });
-                continue;
-            } else if (target === '_self') {
-                await handle.click();
-                await page.waitFor(1000 * 3);
-                await this.handleItem(page);
+                let url: string = await handle.evaluate(el => el.getAttribute('href')) as string;
+                let target: string = await handle.evaluate(el => el.getAttribute('target')) as string;
+                if (target === '_blank') {
+                    let page1: Page = await this.browser.newPage();
+                    try {
+                        await page1.goto(url, {waitUntil: "networkidle0"});
+                        await page1.waitFor(1000 * 1);
+                        await this.invitePeople(page1)
+                    } catch (e) { Logger.log(e)}
+                    page1.waitFor(1000 * 5).then(() => {
+                        page1.close();
+                    });
+                    continue;
+                } else if (target === '_self') {
+                    await handle.click();
+                    await page.waitFor(1000 * 3);
+                    await this.handleItem(page);
+                }
+            } catch (e) {
+                Logger.log(e);
             }
+
         }
 
         await page.waitFor(1000 * 5);
