@@ -11,5 +11,5 @@ export const logToFacebook = async (page: Page, username: string, password: stri
     await page.focus("#login_form #pass");
     await page.keyboard.type(password);
     await page.click("#login_form #loginbutton input");
-    await page.waitForNavigation();
+    await page.waitForNavigation({waitUntil: "load"});
 };
