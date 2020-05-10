@@ -8,7 +8,7 @@ class ShareToGroup {
     browser: Browser;
     username: string;
     password: string;
-    shareTo: Array<string[]> = [['News du Faso'], ['Burkina Kibaria (BurKi)', "DEBAT POLITIQUE", "INFOS ,RIRES ET DÉTENTE"]];
+    shareTo: Array<string[]> = [['News du Faso'], ['Burkina Kibaria (BurKi)', "TIRS CROISÉS (Politique et Société)", "INFOS ,RIRES ET DÉTENTE"]];
 
     constructor(browser: Browser) {
         this.browser = browser;
@@ -38,13 +38,33 @@ class ShareToGroup {
             success = await this.performShare(shareDialog, this.shareTo[0][i], page)
         }
 
+        let userChanged = true;
+        let changeUserButtonHandle: ElementHandle | null = await contentWrapper.$('form img');
+        if (!changeUserButtonHandle) {
+            Logger.log("Impossible de changer le compte qui partage: problème avec le sélecteur (form img)");
+            userChanged = false;
+        } else {
+            await changeUserButtonHandle.click();
+            await page.waitFor(1000 * 2);
+            let changeUserDialog: ElementHandle | null = await page.$(".uiContextualLayerPositioner.uiLayer .uiContextualLayerBelowRight img")
+            if (!changeUserDialog) {
+                Logger.log("Impossible de changer le compte qui partage: problème avec le sélecteur (.uiContextualLayerPositioner.uiLayer .uiContextualLayerBelowRight img)");
+                userChanged = false;
+            }
+            else {
+                await changeUserDialog.click();
+                await page.waitFor(800);
+            }
+        }
 
-        for (let i = 0; i < this.shareTo[1].length; i++) {
-            let shareDialog: ElementHandle | null = await this.openDialog(page, contentWrapper);
-            if (!shareDialog) continue;
-            if (await this.changeSharerToUser(shareDialog, page)) {
+        if (userChanged) {
+            for (let i = 0; i < this.shareTo[1].length; i++) {
+                let shareDialog: ElementHandle | null = await this.openDialog(page, contentWrapper, true);
+                if (!shareDialog) continue;
                 success = await this.performShare(shareDialog, this.shareTo[1][i], page)
-            } else success = false;
+            }
+        } else {
+            success = false
         }
 
 
@@ -54,7 +74,7 @@ class ShareToGroup {
         return success;
     }
 
-    private async openDialog(page: Page, contentWrapper: ElementHandle<Element>) {
+    private async openDialog(page: Page, contentWrapper: ElementHandle<Element>, isUserAccount: boolean = false) {
         let shareButtonLink: ElementHandle | null = await contentWrapper.$("form a[role=button][title*='Envoyez ceci à vos ']");
         if (!shareButtonLink) {
             Logger.log("Impossible de selection form a[role=button][title*='Envoyez ceci à vos ']");
@@ -72,9 +92,10 @@ class ShareToGroup {
 
         await shareButton.click();
         await page.waitFor(1000 * 3);
-        let handle: ElementHandle | null = await page.$('.uiContextualLayerPositioner:not(.hidden_elem) .uiContextualLayer ul li:nth-child(2)');
+        let selector: string  = isUserAccount ? ".uiContextualLayerPositioner:not(.hidden_elem) .uiContextualLayer ul li:nth-child(6)": ".uiContextualLayerPositioner:not(.hidden_elem) .uiContextualLayer ul li:nth-child(2)"
+        let handle: ElementHandle | null = await page.$(selector);
         if (!handle) {
-            Logger.log("Impossible d'acceder à .uiContextualLayerPositioner:not(.hidden_elem) .uiContextualLayer ul li:nth-child(2)");
+            Logger.log(`Impossible d'acceder à ${selector}`);
             return null;
         }
         await handle.click();
@@ -87,44 +108,6 @@ class ShareToGroup {
         return shareDialog;
     }
 
-    private async changeSharerToUser(shareDialog: ElementHandle<Element>, page: Page) {
-        let changeSharerSelect: ElementHandle | null = await shareDialog.$('a[type="button"]');
-
-        if (!changeSharerSelect) {
-            Logger.log("Impossible de changer de compte pour partager (problème avec ce sélecteur : a[type='button'])");
-            return false;
-        }
-        await changeSharerSelect.click();
-        await page.waitFor(800);
-        let changeSharerDialog: ElementHandle | null = await page.$('body > .uiContextualLayerPositioner.uiLayer .uiContextualLayerBelowRight');
-        if (!changeSharerDialog) {
-            Logger.log("Impossible de changer de compte pour partager (problème avec ce sélecteur : body > .uiContextualLayerPositioner.uiLayer .uiContextualLayerBelowRight)");
-            return false;
-        }
-
-        let PrevIcon: ElementHandle | null = await changeSharerDialog.$('.showBusiness i');
-        if (!PrevIcon) {
-            Logger.log("Impossible de changer de compte pour partager (problème avec ce sélecteur : .showBusiness i)");
-            return false;
-        }
-        await page.waitFor(800);
-        await PrevIcon.click();
-
-        let changeSharerDialog2: ElementHandle | null = await page.$('body > .uiContextualLayerPositioner.uiLayer .uiContextualLayerBelowRight');
-        if (!changeSharerDialog2) {
-            Logger.log("Impossible de changer de compte pour partager (problème avec ce sélecteur : body > .uiContextualLayerPositioner.uiLayer .uiContextualLayerBelowRight (2ème occurrence))");
-            return false;
-        }
-        let imgHandler: ElementHandle | null = await changeSharerDialog2.$('img')
-        if (!imgHandler) {
-            Logger.log("Impossible de changer de compte pour partager (problème avec ce sélecteur : img (impossible de cliquer sur l'avatar))");
-            return false;
-        }
-
-        await imgHandler.click();
-        await page.waitFor(500);
-        return true;
-    }
 
     private async performShare(shareDialog: ElementHandle<Element>, group: string, page: Page) {
         let input: ElementHandle | null = await shareDialog.$('input[type="text"]');
@@ -144,7 +127,7 @@ class ShareToGroup {
             return false;
         }
         await submitButton.click();
-        await page.waitFor(1000 * 5);
+        await page.waitFor(1000 * 8);
         Logger.log(`Publication "${getTitle()}" a été partagée dans le groupe "${group}"`);
         return true;
     }
