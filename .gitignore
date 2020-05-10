@@ -3,3 +3,5 @@
 package-lock.json
 .idea
 .env
+credentials.json
+access_token.txt

@@ -40,6 +40,7 @@ const run = async () => {
 
     do {
         const browser = await puppeteer.launch({
+            defaultViewport: null,
             args: ['--disable-gpu', '--no-sandbox', '--single-process',
                 '--disable-web-security', '--disable-dev-profile'],
             headless: true

@@ -75,7 +75,7 @@ class EmploiBurkinaCrawler extends JobCrawler {
     }
 
     private async extractLocality (container: ElementHandle<Element>, job: Job) {
-        let handle: ElementHandle | null = await container.$('tr:nth-child(5) td:nth-child(3)');
+        let handle: ElementHandle | null = await container.$('td .field-name-field-offre-region');
         if (!handle) return;
         job.locality = await handle.evaluate(el => el.textContent) as string;
     }
